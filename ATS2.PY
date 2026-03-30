@@ -1,38 +1,48 @@
-# Install required library
-!pip install scikit-learn
+# Install libraries
+!pip install PyPDF2 scikit-learn
 
-# Import libraries
+# Import
+from google.colab import files
+import PyPDF2
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-# Sample Resume
-resume = """
-I am a BTech student in Artificial Intelligence and Data Science.
-Skilled in Python, Machine Learning, Data Analysis, Deep Learning.
-"""
+# Upload resume file
+uploaded = files.upload()
 
-# Sample Job Description
+# Read PDF file
+resume_text = ""
+for file_name in uploaded.keys():
+    with open(file_name, 'rb') as f:
+        reader = PyPDF2.PdfReader(f)
+        for page in reader.pages:
+            resume_text += page.extract_text()
+
+# Job Description (Edit this)
 job_desc = """
-Looking for a candidate with Python, Machine Learning, Data Analysis, SQL, and Communication skills.
+Looking for Python, Machine Learning, Data Analysis, SQL, Communication skills.
 """
 
 # Convert text to vectors
-cv = CountVectorizer()
-vectors = cv.fit_transform([resume, job_desc])
+cv = CountVectorizer(stop_words='english')
+vectors = cv.fit_transform([resume_text, job_desc])
 
-# Calculate similarity
+# Similarity score
 similarity = cosine_similarity(vectors)[0][1]
-
-# Convert to percentage
 score = similarity * 100
 
-# Find keywords
-resume_words = set(resume.lower().split())
+# Keywords extraction
+resume_words = set(resume_text.lower().split())
 job_words = set(job_desc.lower().split())
 
+matched = resume_words & job_words
 missing = job_words - resume_words
 
 # Output
-print(f"ATS Match Score: {score:.2f}%")
+print(f"\nATS Match Score: {score:.2f}%")
+
+print("\nMatched Keywords:")
+print(matched)
+
 print("\nMissing Keywords:")
 print(missing)
