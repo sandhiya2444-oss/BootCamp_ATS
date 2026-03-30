@@ -1,0 +1,84 @@
+# ==============================
+# 1. INSTALL REQUIRED LIBRARIES
+# ==============================
+!pip install PyPDF2 scikit-learn nltk
+
+# ==============================
+# 2. IMPORT LIBRARIES
+# ==============================
+from google.colab import files
+import PyPDF2
+import nltk
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
+nltk.download('punkt')
+
+# ==============================
+# 3. UPLOAD RESUME FILE
+# ==============================
+uploaded = files.upload()
+
+# ==============================
+# 4. EXTRACT TEXT FROM RESUME
+# ==============================
+resume_text = ""
+
+for file_name in uploaded.keys():
+    with open(file_name, 'rb') as f:
+        reader = PyPDF2.PdfReader(f)
+        for page in reader.pages:
+            if page.extract_text():
+                resume_text += page.extract_text()
+
+# ==============================
+# 5. JOB DESCRIPTION (EDIT THIS)
+# ==============================
+job_desc = """
+We are looking for a Python developer with strong skills in Machine Learning,
+Data Analysis, SQL, Deep Learning and Communication skills.
+Experience in AI projects is preferred.
+"""
+
+# ==============================
+# 6. AI CONTEXTUAL MATCHING (TF-IDF)
+# ==============================
+vectorizer = TfidfVectorizer(stop_words='english')
+vectors = vectorizer.fit_transform([resume_text, job_desc])
+
+similarity = cosine_similarity(vectors[0:1], vectors[1:2])[0][0]
+score = similarity * 100
+
+print("\n==============================")
+print("🤖 AI ATS RESULT")
+print("==============================")
+print(f"🎯 Match Score: {score:.2f}%")
+
+# ==============================
+# 7. KEYWORD ANALYSIS
+# ==============================
+resume_words = set(resume_text.lower().split())
+job_words = set(job_desc.lower().split())
+
+matched = resume_words.intersection(job_words)
+missing = job_words - resume_words
+
+print("\n✅ Matched Keywords:")
+print(matched)
+
+print("\n❌ Missing Keywords:")
+print(missing)
+
+# ==============================
+# 8. AI RECOMMENDATION ENGINE
+# ==============================
+print("\n🧠 AI Suggestions:")
+
+if score < 50:
+    print("- Improve resume structure and add missing skills")
+elif score < 75:
+    print("- Add missing keywords from job description")
+else:
+    print("- Strong match! Your resume is well aligned")
+
+print("\n✔ Tip: Add missing skills in resume naturally (not spam keywords)")
